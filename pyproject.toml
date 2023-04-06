@@ -8,16 +8,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-google-cloud-bigquery = "^3.9.0"
-pandas = "^2.0.0"
-google-api-python-client = "^2.83.0"
-google-auth-httplib2 = "^0.1.0"
 google-auth-oauthlib = "^1.0.0"
+google-cloud-bigquery = "^3.9.0"
 gspread = "^5.8.0"
+pandas = "^2.0.0"
 pandas-gbq = "^0.19.1"
 
-
-[tool.poetry.group.dev.dependencies]
 
 [build-system]
 requires = ["poetry-core"]
