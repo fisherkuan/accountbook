@@ -20,16 +20,14 @@ def get_creds(from_service_account_file=False) -> Credentials:
     KEY_PATH = Path("credentials/service-account-key.json")
     TOKEN_PATH = Path("credentials/user-token.json")
 
-    creds = None
     if from_service_account_file:
         creds = service_account.Credentials.from_service_account_file(
             KEY_PATH, scopes=SCOPES
         )
-        if not creds.valid:
-            print(
-                "Service account key invalid. Trying to get credentials from authorized user."
-            )
-    elif TOKEN_PATH.exists():
+        return creds
+    
+    creds = None
+    if TOKEN_PATH.exists():
         creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -54,10 +52,10 @@ def query_bigquery(
 
 
 if __name__ == "__main__":
-    sheet1_a1 = sheets_agent().open("mysheet1").sheet1
+    sheet1_a1 = sheets_agent(auth_from_service_account_file=True).open("mysheet1").sheet1
     query = "SELECT * FROM `kuan-wu-accounting.data.fisher-kbc` LIMIT 1000"
 
     print(sheet1_a1.get("A1:B8"))
     # sheet1_a1.update('A1', [[1, 2], [3, 4]])
     # sheet1_a1.update('B25', "it's down there somewhere, let me take another look.")
-    print(query_bigquery(query=query))
+    print(query_bigquery(query=query, auth_from_service_account_file=True))
