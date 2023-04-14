@@ -1,0 +1,37 @@
+{
+    "properties": {
+        "owner": "fisher",
+        "bank": "bank",
+        "product": "card3",
+        "default_balance": 50,
+        "description": null,
+        "balance": 200
+    },
+    "records": [
+        {
+            "date": "2023-04-14 14:32:28",
+            "balance": 150.0
+        },
+        {
+            "date": "2023-04-14 14:32:28",
+            "balance": 200.0
+        },
+        {
+            "date": "2023-04-14 14:32:28",
+            "balance": 200.0
+        },
+        {
+            "date": "2023-04-14 14:36:50",
+            "balance": 150.0
+        },
+        {
+            "date": "2023-04-14 14:36:50",
+            "balance": 200.0,
+            "label": "Xmas"
+        },
+        {
+            "date": "2023-04-14 14:36:50",
+            "balance": 200.0
+        }
+    ]
+}

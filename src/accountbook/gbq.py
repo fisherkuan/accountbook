@@ -7,7 +7,7 @@ import pandas_gbq as pdgbq
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
 
-from .credentials import get_creds
+from accountbook.credentials import get_creds
 
 
 class GoogleBigQueryHandler:
@@ -67,9 +67,23 @@ class GoogleBigQueryHandler:
         self.client.update_table(table, ["schema", "external_data_configuration"])
         print(f"Updated table {table.project}.{table.dataset_id}.{table.table_id}")
 
+    def remove_table(self, table_id: str, not_found_ok: bool = True) -> None:
+        self.client.delete_table(table_id, not_found_ok)
+        print(f"Deleted table {table_id}")
+
     def generate_external_config(
         self, sheet_url: str, range: str, **options
     ) -> bigquery.ExternalConfig:
+        """External configuration defines advanced options when creating an external table like GoogleSheets.
+
+        Args:
+            sheet_url (str): Sharing URL of the Google Sheets file
+            range (str): Name of the spreadsheet and the range inside it
+            **options: Additional configurations
+
+        Returns:
+            bigquery.ExternalConfig object
+        """
         external_config = bigquery.ExternalConfig("GOOGLE_SHEETS")
         external_config.source_uris = [sheet_url]
         external_config.options.range = range

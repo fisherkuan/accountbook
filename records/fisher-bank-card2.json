@@ -1,0 +1,11 @@
+{
+    "properties": {
+        "owner": "fisher",
+        "bank": "bank",
+        "product": "card2",
+        "default_balance": 50,
+        "description": null,
+        "balance": 100.0
+    },
+    "records": []
+}

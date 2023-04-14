@@ -1,11 +1,11 @@
 from __future__ import print_function
 
-from pathlib import Path
-
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
+
+from config import SECRETS
 
 
 def get_creds(from_service_account_file=False) -> Credentials:
@@ -14,8 +14,8 @@ def get_creds(from_service_account_file=False) -> Credentials:
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
     ]
-    KEY_PATH = Path("credentials/service-account-key.json")
-    TOKEN_PATH = Path("credentials/user-token.json")
+    KEY_PATH = SECRETS / "service-account-key.json"
+    TOKEN_PATH = SECRETS / "user-token.json"
 
     if from_service_account_file:
         creds = service_account.Credentials.from_service_account_file(
@@ -31,7 +31,7 @@ def get_creds(from_service_account_file=False) -> Credentials:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                "credentials/credentials.json", SCOPES
+                SECRETS / "credentials.json", SCOPES
             )
             creds = flow.run_local_server(port=0)
         with open(TOKEN_PATH, "w") as token:

@@ -13,8 +13,15 @@ google-cloud-bigquery = "^3.9.0"
 gspread = "^5.8.0"
 pandas = "^2.0.0"
 pandas-gbq = "^0.19.1"
+pre-commit = "^3.2.2"
 
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.22.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
