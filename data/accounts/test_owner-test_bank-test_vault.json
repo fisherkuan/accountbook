@@ -1,0 +1,16 @@
+{
+    "profile": {
+        "description": null,
+        "owner": "test_owner",
+        "bank": "test_bank",
+        "vault": "test_vault",
+        "default_balance": 0,
+        "balance": 100
+    },
+    "budget": {
+        "JAN": [
+            1000,
+            1500
+        ]
+    }
+}

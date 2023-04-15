@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import List
+from dataclasses import dataclass, field
 
 import pandas as pd
 import pandas_gbq as pdgbq
@@ -18,6 +19,20 @@ class GoogleBigQueryHandler:
         self.client = bigquery.Client(project=project, credentials=self.cred)
         pdgbq.context.credentials = self.cred
 
+    def dataset_exists(self, dataset_id: str) -> bool:
+        try:
+            self.client.get_dataset(dataset_id)
+            return True
+        except NotFound:
+            return False
+
+    def table_exists(self, table_id: str) -> bool:
+        try:
+            self.client.get_table(table_id)
+            return True
+        except NotFound:
+            return False
+
     def create_dataset(self, name: str, location: str = "EU") -> None:
         dataset_id = f"{self.client.project}.{name}"
         dataset = bigquery.Dataset(dataset_id)
@@ -28,13 +43,6 @@ class GoogleBigQueryHandler:
         # exists within the project.
         dataset = self.client.create_dataset(dataset, timeout=30)
         print(f"Created dataset {self.client.project}.{dataset.dataset_id}")
-
-    def dataset_exists(self, dataset_id: str) -> bool:
-        try:
-            self.client.get_dataset(dataset_id)
-            return True
-        except NotFound:
-            return False
 
     def create_table(
         self,
@@ -48,13 +56,6 @@ class GoogleBigQueryHandler:
         table.external_data_configuration = external_config
         table = self.client.create_table(table)
         print(f"Created table {table.project}.{table.dataset_id}.{table.table_id}")
-
-    def table_exists(self, table_id: str) -> bool:
-        try:
-            self.client.get_table(table_id)
-            return True
-        except NotFound:
-            return False
 
     def update_table(
         self,
@@ -133,6 +134,23 @@ class GoogleBigQueryHandler:
                 else:
                     self.create_table(table_name, dataset_id, schema, external_config)
         print(f"All tables in {dataset_name=} are updated.")
+
+
+@dataclass
+class Table:
+    dataset: str
+    name: str
+    project: str = "kuan-wu-accounting"
+    table_id: str = field(init=False, repr=False)
+    auth_from_service_account_file: bool = field(default=False, repr=False)
+
+    def __post_init__(self) -> None:
+        self.table_id = f"{self.project}.{self.dataset}.{self.name}"
+        self.handler = GoogleBigQueryHandler(
+            project=self.project,
+            auth_from_service_account_file=self.auth_from_service_account_file,
+        )
+        self.data: pd.DataFrame = self.handler.query(f"SELECT * FROM {self.table_id}")
 
 
 def main():

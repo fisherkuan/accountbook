@@ -1,32 +1,33 @@
 {
     "kbc": [
-        {"name": "month", "field_type": "STRING", "mode": "NULLABLE"},
-        {"name": "description", "field_type": "STRING", "mode": "NULLABLE"},
+        {"name": "year", "field_type": "INT64", "mode": "NULLABLE"},
+        {"name": "month", "field_type": "INT64", "mode": "NULLABLE"},
+        {"name": "note", "field_type": "STRING", "mode": "NULLABLE"},
         {"name": "eur", "field_type": "NUMERIC", "mode": "NULLABLE"},
         {"name": "is_salary", "field_type": "BOOLEAN", "mode": "NULLABLE"},
-        {"name": "is_personal_expense", "field_type": "BOOLEAN", "mode": "NULLABLE"},
         {"name": "is_direct_debit", "field_type": "BOOLEAN", "mode": "NULLABLE"},
         {"name": "category", "field_type": "STRING", "mode": "NULLABLE"}
     ],
     "revolut": [
-        {"name": "month", "field_type": "STRING", "mode": "NULLABLE"},
-        {"name": "description", "field_type": "STRING", "mode": "NULLABLE"},
+        {"name": "year", "field_type": "INT64", "mode": "NULLABLE"},
+        {"name": "month", "field_type": "INT64", "mode": "NULLABLE"},
+        {"name": "note", "field_type": "STRING", "mode": "NULLABLE"},
         {"name": "eur", "field_type": "NUMERIC", "mode": "NULLABLE"},
         {"name": "is_deposit", "field_type": "BOOLEAN", "mode": "NULLABLE"},
-        {"name": "is_personal_expense", "field_type": "BOOLEAN", "mode": "NULLABLE"},
         {"name": "category", "field_type": "STRING", "mode": "NULLABLE"}
     ],
     "revolut_pro": [
-        {"name": "month", "field_type": "STRING", "mode": "NULLABLE"},
-        {"name": "description", "field_type": "STRING", "mode": "NULLABLE"},
+        {"name": "year", "field_type": "INT64", "mode": "NULLABLE"},
+        {"name": "month", "field_type": "INT64", "mode": "NULLABLE"},
+        {"name": "note", "field_type": "STRING", "mode": "NULLABLE"},
         {"name": "eur", "field_type": "NUMERIC", "mode": "NULLABLE"},
         {"name": "is_deposit", "field_type": "BOOLEAN", "mode": "NULLABLE"},
-        {"name": "is_personal_expense", "field_type": "BOOLEAN", "mode": "NULLABLE"},
         {"name": "category", "field_type": "STRING", "mode": "NULLABLE"}
     ],
-    "taiwan": [
-        {"name": "month", "field_type": "STRING", "mode": "NULLABLE"},
-        {"name": "description", "field_type": "STRING", "mode": "NULLABLE"},
+    "twd": [
+        {"name": "year", "field_type": "INT64", "mode": "NULLABLE"},
+        {"name": "month", "field_type": "INT64", "mode": "NULLABLE"},
+        {"name": "note", "field_type": "STRING", "mode": "NULLABLE"},
         {"name": "eur", "field_type": "NUMERIC", "mode": "NULLABLE"},
         {"name": "is_deposit", "field_type": "BOOLEAN", "mode": "NULLABLE"},
         {"name": "category", "field_type": "STRING", "mode": "NULLABLE"}

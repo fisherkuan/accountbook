@@ -3,51 +3,29 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from collections import defaultdict
 import json
 
-from config import RECORDS
+from config import ACCOUNTS, config_account
+from account_properties import Owner, Bank, Vault
 
 
 @dataclass
 class Account:
-    owner: str
-    bank: str
-    product: str
+    owner: Owner
+    bank: Bank
+    vault: Vault
     default_balance: float = field(repr=False)
+    id: str = field(init=False)
     _balance: float = field(init=False, repr=False)
-    balance: float = field(repr=False)
+    balance: float
     description: str = None
 
     def __post_init__(self) -> None:
-        file_path = RECORDS / f"{self.owner}-{self.bank}-{self.product}.json"
-        if file_path.exists():
-            print("File already created.")
-        else:
-            print(f"Create a new file {file_path}")
-            with open(file_path, "w") as file:
-                init = dict(properties=vars(self).copy(), records=[])
-                init["properties"]["balance"] = init["properties"].pop("_balance")
-                json.dump(init, file, indent=4)
-        self.file_path = file_path
-
-    @staticmethod
-    def from_file(file_path: Path | str) -> Account:
-        with open(file_path) as f:
-            attributes = json.load(f)["properties"]
-        return Account(**attributes)
-
-    def take_snapshot(self, label: str = None) -> None:
-        snapshot = {
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "balance": self.balance,
-        }
-        if label:
-            snapshot["label"] = label
-        with open(self.file_path) as file:
-            data = json.load(file)
-        with open(self.file_path, "w") as file:
-            data["records"].append(snapshot)
-            json.dump(data, file, indent=4)
+        self.id: str = f"{self.owner}-{self.bank}-{self.vault}"
+        self.file_path = ACCOUNTS / f"{self.id}.json"
+        if not self.file_path.exists():
+            self.initiate_file()
 
     @property
     def balance(self):
@@ -59,20 +37,52 @@ class Account:
             raise TypeError("Balance is numeric.")
         self._balance = float(new_value)
 
-        file_path = RECORDS / f"{self.owner}-{self.bank}-{self.product}.json"
+        file_path = ACCOUNTS / f"{self.owner}-{self.bank}-{self.vault}.json"
         if file_path.exists():
             with open(file_path) as file:
                 data = json.load(file)
             with open(file_path, "w") as file:
-                data["properties"]["balance"] = new_value
+                data["profile"]["balance"] = new_value
                 json.dump(data, file, indent=4)
+
+    def initiate_file(self) -> None:
+        profile_attributes = config_account["profile_attributes"]
+        profile = {attr: getattr(self, attr) for attr in profile_attributes}
+        with open(self.file_path, "w") as file:
+            json.dump(dict(profile=profile), file, indent=4)
+        print(f"Created a new file {self.file_path}")
+
+    @staticmethod
+    def from_file(file_path: Path | str) -> Account:
+        with open(file_path) as f:
+            attributes = json.load(f)["profile"]
+        return Account(**attributes)
+
+    def take_snapshot(self, label: str = None) -> None:
+        with open(self.file_path) as file:
+
+            def fn_defaultdict_list(d):
+                return defaultdict(list, d)
+
+            data = json.load(file, object_hook=fn_defaultdict_list)
+
+        snapshot = {
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "balance": self.balance,
+        }
+        if label:
+            snapshot["label"] = label
+        data["snapshots"].append(snapshot)
+
+        with open(self.file_path, "w") as file:
+            json.dump(data, file, indent=4)
 
 
 def main():
     a = Account(
-        owner="fisher",
-        bank="bank_test",
-        product="card_test",
+        owner=Owner.TEST,
+        bank=Bank.TEST,
+        vault=Vault.TEST,
         balance=100,
         default_balance=50,
     )
