@@ -1,7 +1,6 @@
 from accountbook.account import Account
-from accountbook.budget import Budget
 from accountbook.gbq import Table
-from accountbook.table_properties import ColRawData
+from constant.table import ColRawData
 from config import ACCOUNTS
 from typing import List
 
@@ -10,7 +9,11 @@ def update_account_balance(account: Account, raw_data: Table) -> None:
     account.balance = raw_data.data[ColRawData.VALUE].sum()
 
 
-def generate_budget_summary(budgets: List[Budget]):
+def summarize_budget(account: Account):
+    ...
+
+
+def generate_budget_summary(accounts: List[Account]):
     ...
 
 

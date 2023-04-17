@@ -7,14 +7,14 @@ from collections import defaultdict
 import json
 
 from config import ACCOUNTS, config_account
-from account_properties import Owner, Bank, Vault
+from constant.members import AccountEnum
 
 
 @dataclass
 class Account:
-    owner: Owner
-    bank: Bank
-    vault: Vault
+    owner: str
+    bank: str
+    vault: str
     default_balance: float = field(repr=False)
     id: str = field(init=False)
     _balance: float = field(init=False, repr=False)
@@ -79,13 +79,7 @@ class Account:
 
 
 def main():
-    a = Account(
-        owner=Owner.TEST,
-        bank=Bank.TEST,
-        vault=Vault.TEST,
-        balance=100,
-        default_balance=50,
-    )
+    a = Account(*AccountEnum.TEST.value, balance=100)
     print(f"{a=}")
     a.balance = 150
     print(f"{a=}")
