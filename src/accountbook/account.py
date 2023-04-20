@@ -45,6 +45,12 @@ class Account:
                 data["profile"]["balance"] = new_value
                 json.dump(data, file, indent=4)
 
+    @staticmethod
+    def from_file(file_path: Path | str) -> Account:
+        with open(file_path) as f:
+            attributes = json.load(f)["profile"]
+        return Account(**attributes)
+
     def initiate_file(self) -> None:
         profile_attributes = config_account["profile_attributes"]
         profile = {attr: getattr(self, attr) for attr in profile_attributes}
@@ -52,11 +58,9 @@ class Account:
             json.dump(dict(profile=profile), file, indent=4)
         print(f"Created a new file {self.file_path}")
 
-    @staticmethod
-    def from_file(file_path: Path | str) -> Account:
-        with open(file_path) as f:
-            attributes = json.load(f)["profile"]
-        return Account(**attributes)
+    def load(self):
+        with open(self.file_path) as file:
+            return json.load(file)
 
     def take_snapshot(self, label: str = None) -> None:
         with open(self.file_path) as file:

@@ -23,6 +23,7 @@ class Vault:
     TRAVEL = "travel"
     E0 = "e0"
     CREDIT_CARD = "credit_card"
+    DEBIT_CARD = "debit_card"
     TEST = "test_vault"
 
 
@@ -42,26 +43,26 @@ class BudgetCategory:
 
 
 class BudgetEnum(Enum):
-    TEST = (Owner.TEST, BudgetCategory.TEST)
+    TEST = (Owner.TEST, BudgetCategory.TEST, 500.0)
 
     FISHER_SALARY = (Owner.FISHER, BudgetCategory.SALARY)
-    FISHER_PERSONAL = (Owner.FISHER, BudgetCategory.PERSONAL)
-    FISHER_TWD = (Owner.FISHER, BudgetCategory.TWD)
-    FISHER_PENSION = (Owner.FISHER, BudgetCategory.PENSION)
+    FISHER_PERSONAL = (Owner.FISHER, BudgetCategory.PERSONAL, 200.0)
+    FISHER_TWD = (Owner.FISHER, BudgetCategory.TWD, 400.0)
+    FISHER_PENSION = (Owner.FISHER, BudgetCategory.PENSION, 107.96)
     FISHER_OTHERS = (Owner.FISHER, BudgetCategory.OTHERS)
 
     RUHAN_SALARY = (Owner.RUHAN, BudgetCategory.SALARY)
-    RUHAN_PERSONAL = (Owner.RUHAN, BudgetCategory.PERSONAL)
-    RUHAN_TWD = (Owner.RUHAN, BudgetCategory.TWD)
-    RUHAN_PENSION = (Owner.RUHAN, BudgetCategory.PENSION)
+    RUHAN_PERSONAL = (Owner.RUHAN, BudgetCategory.PERSONAL, 200.0)
+    RUHAN_TWD = (Owner.RUHAN, BudgetCategory.TWD, 300.0)
+    RUHAN_PENSION = (Owner.RUHAN, BudgetCategory.PENSION, 82.5)
     RUHAN_OTHERS = (Owner.RUHAN, BudgetCategory.OTHERS)
 
-    SHARED_SHARED = (Owner.SHARED, BudgetCategory.SHARED)
-    SHARED_HOMELOAN = (Owner.SHARED, BudgetCategory.HOMELOAN)
+    SHARED_SHARED = (Owner.SHARED, BudgetCategory.SHARED, 1200.0)
+    SHARED_HOMELOAN = (Owner.SHARED, BudgetCategory.HOMELOAN, 1651.36)
     SHARED_STOCK = (Owner.SHARED, BudgetCategory.STOCK)
     SHARED_CRYPTO = (Owner.SHARED, BudgetCategory.CRYPTO)
-    SHARED_TRAVEL = (Owner.SHARED, BudgetCategory.TRAVEL)
-    SHARED_E0 = (Owner.SHARED, BudgetCategory.E0)
+    SHARED_TRAVEL = (Owner.SHARED, BudgetCategory.TRAVEL, 200.0)
+    SHARED_E0 = (Owner.SHARED, BudgetCategory.E0, 1000.0)
     SHARED_OTHERS = (Owner.SHARED, BudgetCategory.OTHERS)
 
     @classmethod
@@ -85,7 +86,7 @@ class AccountEnum(Enum):
     SHARED_KBC_CARD = (Owner.SHARED, Bank.KBC, Vault.CREDIT_CARD, 0.0)
     SHARED_KBC_E0 = (Owner.SHARED, Bank.KBC, Vault.E0, 0.8)
     SHARED_REVOLUT_TRAVEL = (Owner.SHARED, Bank.REVOLUT, Vault.TRAVEL, 500.0)
-    SHARED_CRYPTO_BASIC = (Owner.SHARED, Bank.CRYPTO_COM, Vault.BASIC, 443.48)
+    SHARED_CRYPTO_CARD = (Owner.SHARED, Bank.CRYPTO_COM, Vault.DEBIT_CARD, 443.48)
 
     @classmethod
     def all(cls):

@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from helper import nested_defaultdict
+from accountbook.helper import nested_defaultdict
 from collections import defaultdict
 import json
+from pathlib import Path
 
 from enum import Enum
 from constant.members import BudgetEnum
@@ -9,6 +12,7 @@ from config import BUDGETS, config_budget
 
 
 class Month(Enum):
+    DEFAULT = 0
     JAN = 1
     FEB = 2
     MAR = 3
@@ -27,6 +31,7 @@ class Month(Enum):
 class Budget:
     owner: str
     budget_category: str
+    default_budget: float = None
     description: str = None
 
     def __post_init__(self) -> None:
@@ -39,12 +44,22 @@ class Budget:
     def _fn_nested_defaultdict_object_hook(d):
         return defaultdict(nested_defaultdict, d)
 
+    @staticmethod
+    def from_file(file_path: Path | str) -> Budget:
+        with open(file_path) as f:
+            attributes = json.load(f)["profile"]
+        return Budget(**attributes)
+
     def initiate_file(self) -> None:
         profile_attributes = config_budget["profile_attributes"]
         profile = {attr: getattr(self, attr) for attr in profile_attributes}
         with open(self.file_path, "w") as file:
             json.dump(dict(profile=profile), file, indent=4)
         print(f"Created a new file {self.file_path}")
+
+    def load(self):
+        with open(self.file_path) as file:
+            return json.load(file)
 
     def add(self, month: Month, budget: float, year: int | str = 2023) -> None:
         with open(self.file_path) as file:

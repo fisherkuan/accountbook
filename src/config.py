@@ -1,4 +1,5 @@
 from pathlib import Path
+from constant.table import ColRawData
 
 SECRETS = Path("/Users/fisherkuan/Projects/fisher/accountbook/secrets")
 SCHEMA = Path("/Users/fisherkuan/Projects/fisher/accountbook/schema")
@@ -22,5 +23,22 @@ config_budget = {
         "description",
         "owner",
         "budget_category",
+        "default_budget",
     ]
+}
+
+config_table = {
+    "budget_summary": {
+        "header": [
+            "owner",
+            "budget_category",
+            "default_budget",
+        ],
+        "columns": [
+            ColRawData.YEAR,
+            ColRawData.MONTH,
+            ColRawData.VALUE,
+            ColRawData.BUDGET,
+        ],
+    }
 }

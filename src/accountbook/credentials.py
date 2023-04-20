@@ -26,7 +26,6 @@ def get_creds(from_service_account_file=False) -> Credentials:
     creds = None
     if TOKEN_PATH.exists():
         creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
-        print(creds.valid)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())

@@ -9,6 +9,8 @@ from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
 
 from accountbook.credentials import get_creds
+from config import SCHEMA, SECRETS
+from constant.table import ColRawData
 
 
 class GoogleBigQueryHandler:
@@ -57,7 +59,7 @@ class GoogleBigQueryHandler:
         table = self.client.create_table(table)
         print(f"Created table {table.project}.{table.dataset_id}.{table.table_id}")
 
-    def update_table(
+    def update_table_metadata(
         self,
         table_id: str,
         schema: List[bigquery.SchemaField] = None,
@@ -94,7 +96,7 @@ class GoogleBigQueryHandler:
         return external_config
 
     def get_sheet_url_from_json(
-        self, sheet_name: str, json_path: Path | str = "secrets/sheet_urls.json"
+        self, sheet_name: str, json_path: Path = SECRETS / "sheet_urls.json"
     ) -> str:
         with open(json_path) as f:
             sheet_urls = json.load(f)
@@ -104,7 +106,7 @@ class GoogleBigQueryHandler:
             return sheet_url
 
     def get_schema_from_json(
-        self, table_name: str, json_path: Path | str
+        self, table_name: str, json_path: Path
     ) -> List[bigquery.SchemaField]:
         with open(json_path) as f:
             schema = json.load(f)
@@ -114,8 +116,8 @@ class GoogleBigQueryHandler:
     def query(self, query: str) -> pd.DataFrame:
         return pd.read_gbq(query, self.client.project)
 
-    def create_or_update_all_tables(
-        self, dataset_name: str, schema_path: Path | str, **options
+    def create_or_update_tables_from_file(
+        self, dataset_name: str, sheet_name: str, schema_path: Path, **options
     ) -> None:
         dataset_id = f"{self.client.project}.{dataset_name}"
         if not self.dataset_exists(dataset_id):
@@ -124,13 +126,13 @@ class GoogleBigQueryHandler:
             schemas = json.load(f)
             for table_name, schema in schemas.items():
                 schema = [bigquery.SchemaField(**field) for field in schema]
-                sheet_url = self.get_sheet_url_from_json(sheet_name=dataset_name)
+                sheet_url = self.get_sheet_url_from_json(sheet_name=sheet_name)
                 external_config = self.generate_external_config(
                     sheet_url, table_name, **options
                 )
                 table_id = f"{dataset_id}.{table_name}"
                 if self.table_exists(table_id):
-                    self.update_table(table_id, schema, external_config)
+                    self.update_table_metadata(table_id, schema, external_config)
                 else:
                     self.create_table(table_name, dataset_id, schema, external_config)
         print(f"All tables in {dataset_name=} are updated.")
@@ -150,15 +152,44 @@ class Table:
             project=self.project,
             auth_from_service_account_file=self.auth_from_service_account_file,
         )
-        self.data: pd.DataFrame = self.handler.query(f"SELECT * FROM {self.table_id}")
+
+    def query(self, query) -> pd.DataFrame:
+        return self.handler.query(query)
+
+    def _generate_col_string(self) -> str:
+        col_all_except_tags = ColRawData.values()[:-1]
+        col_tags = [f"tag_{tag}" for tag in ColRawData.TAGS]
+        return ", ".join(col_all_except_tags + col_tags)
+
+    def _convert_tags_column(self, df: pd.DataFrame) -> pd.DataFrame:
+        col_tags = [col for col in df.columns if col.startswith("tag_")]
+        col_out = [col for col in df.columns if not col.startswith("tag_")] + ["tags"]
+        for col in col_tags:
+            tag = col[4:]
+            df[col] = df[col].apply(lambda x: tag if x else None)
+        df["tags"] = df[col_tags].values.tolist()
+        df["tags"] = df["tags"].apply(
+            lambda list_tags: ", ".join(filter(None, list_tags))
+        )
+        return df[col_out]
+
+    def load_data(self) -> pd.DataFrame:
+        data: pd.DataFrame = self.query(
+            f"SELECT {self._generate_col_string()} FROM {self.table_id} "
+            f"WHERE {ColRawData.VALUE} IS NOT NULL"
+        )
+        data[ColRawData.VALUE] = -data[ColRawData.VALUE].round(2)
+        data = self._convert_tags_column(data)
+        return data
 
 
 def main():
     handler = GoogleBigQueryHandler()
     options = {"skip_leading_rows": 1}
-    handler.create_or_update_all_tables(
-        dataset_name="fisher_2023",
-        schema_path=Path("schema/fisher_2023.json"),
+    handler.create_or_update_tables_from_file(
+        dataset_name="data",
+        sheet_name="kuan-wu-accountbook",
+        schema_path=SCHEMA / "kuan-wu.json",
         **options,
     )
 

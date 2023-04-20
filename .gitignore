@@ -135,3 +135,4 @@ secrets/
 data/
 
 *.ipynb
+.ruff_cache/
