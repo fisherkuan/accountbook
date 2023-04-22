@@ -67,7 +67,7 @@ class BudgetEnum(Enum):
 
     @classmethod
     def all(cls):
-        return list(cls)
+        return [attr.value for attr in list(cls)]
 
 
 class AccountEnum(Enum):
@@ -90,4 +90,4 @@ class AccountEnum(Enum):
 
     @classmethod
     def all(cls):
-        return list(cls)
+        return [attr.value for attr in list(cls)]

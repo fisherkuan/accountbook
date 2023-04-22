@@ -20,9 +20,10 @@ class BaseConstant:
 class ColRawData(BaseConstant):
     YEAR = "year"
     MONTH = "month"
+    DAY = "day"
     VALUE = "eur"
-    ACCOUNT = "account"
-    BUDGET = "budget_category"
+    ACCOUNT_ID = "account"
+    BUDGET_ID = "budget_category"
     DESCRIPTION = "description"
     TAGS = [
         "salary",

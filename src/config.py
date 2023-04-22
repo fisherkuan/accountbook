@@ -15,6 +15,7 @@ config_account = {
         "vault",
         "default_balance",
         "balance",
+        "last_balance_update",
     ]
 }
 
@@ -27,6 +28,7 @@ config_budget = {
     ]
 }
 
+# TODO: remove this
 config_table = {
     "budget_summary": {
         "header": [
@@ -37,8 +39,9 @@ config_table = {
         "columns": [
             ColRawData.YEAR,
             ColRawData.MONTH,
+            ColRawData.DAY,
             ColRawData.VALUE,
-            ColRawData.BUDGET,
+            ColRawData.BUDGET_ID,
         ],
     }
 }

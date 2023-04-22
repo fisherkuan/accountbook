@@ -2,6 +2,7 @@
     "transactions": [
         {"name": "year", "field_type": "INT64", "mode": "NULLABLE"},
         {"name": "month", "field_type": "INT64", "mode": "NULLABLE"},
+        {"name": "day", "field_type": "INT64", "mode": "NULLABLE"},
         {"name": "eur", "field_type": "FLOAT64", "mode": "NULLABLE"},
         {"name": "account", "field_type": "STRING", "mode": "NULLABLE"},
         {"name": "budget_category", "field_type": "STRING", "mode": "NULLABLE"},

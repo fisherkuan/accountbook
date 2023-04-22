@@ -35,14 +35,17 @@ class Account:
     def balance(self, new_value: float):
         if not isinstance(new_value, (float, int)):
             raise TypeError("Balance is numeric.")
-        self._balance = float(new_value)
+        self._balance = round(float(new_value), 2)
+        self.last_balance_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         file_path = ACCOUNTS / f"{self.owner}-{self.bank}-{self.vault}.json"
         if file_path.exists():
             with open(file_path) as file:
                 data = json.load(file)
             with open(file_path, "w") as file:
-                data["profile"]["balance"] = new_value
+                data["profile"]["balance"] = self._balance
+                data["profile"]["last_balance_update"] = self.last_balance_update
+                print(f"Balance set to {self._balance} on {self.last_balance_update}")
                 json.dump(data, file, indent=4)
 
     @staticmethod
