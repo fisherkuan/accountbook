@@ -43,27 +43,27 @@ class BudgetCategory:
 
 
 class BudgetEnum(Enum):
-    TEST = (Owner.TEST, BudgetCategory.TEST, 500.0)
+    TEST = f"{Owner.TEST}-{BudgetCategory.TEST}"
 
-    FISHER_SALARY = (Owner.FISHER, BudgetCategory.SALARY)
-    FISHER_PERSONAL = (Owner.FISHER, BudgetCategory.PERSONAL, 200.0)
-    FISHER_TWD = (Owner.FISHER, BudgetCategory.TWD, 400.0)
-    FISHER_PENSION = (Owner.FISHER, BudgetCategory.PENSION, 107.96)
-    FISHER_OTHERS = (Owner.FISHER, BudgetCategory.OTHERS)
+    FISHER_SALARY = f"{Owner.FISHER}-{BudgetCategory.SALARY}"
+    FISHER_PERSONAL = f"{Owner.FISHER}-{BudgetCategory.PERSONAL}"
+    FISHER_TWD = f"{Owner.FISHER}-{BudgetCategory.TWD}"
+    FISHER_PENSION = f"{Owner.FISHER}-{BudgetCategory.PENSION}"
+    FISHER_OTHERS = f"{Owner.FISHER}-{BudgetCategory.OTHERS}"
 
-    RUHAN_SALARY = (Owner.RUHAN, BudgetCategory.SALARY)
-    RUHAN_PERSONAL = (Owner.RUHAN, BudgetCategory.PERSONAL, 200.0)
-    RUHAN_TWD = (Owner.RUHAN, BudgetCategory.TWD, 300.0)
-    RUHAN_PENSION = (Owner.RUHAN, BudgetCategory.PENSION, 82.5)
-    RUHAN_OTHERS = (Owner.RUHAN, BudgetCategory.OTHERS)
+    RUHAN_SALARY = f"{Owner.RUHAN}-{BudgetCategory.SALARY}"
+    RUHAN_PERSONAL = f"{Owner.RUHAN}-{BudgetCategory.PERSONAL}"
+    RUHAN_TWD = f"{Owner.RUHAN}-{BudgetCategory.TWD}"
+    RUHAN_PENSION = f"{Owner.RUHAN}-{BudgetCategory.PENSION}"
+    RUHAN_OTHERS = f"{Owner.RUHAN}-{BudgetCategory.OTHERS}"
 
-    SHARED_SHARED = (Owner.SHARED, BudgetCategory.SHARED, 1200.0)
-    SHARED_HOMELOAN = (Owner.SHARED, BudgetCategory.HOMELOAN, 1651.36)
-    SHARED_STOCK = (Owner.SHARED, BudgetCategory.STOCK)
-    SHARED_CRYPTO = (Owner.SHARED, BudgetCategory.CRYPTO)
-    SHARED_TRAVEL = (Owner.SHARED, BudgetCategory.TRAVEL, 200.0)
-    SHARED_E0 = (Owner.SHARED, BudgetCategory.E0, 1000.0)
-    SHARED_OTHERS = (Owner.SHARED, BudgetCategory.OTHERS)
+    SHARED_SHARED = f"{Owner.SHARED}-{BudgetCategory.SHARED}"
+    SHARED_HOMELOAN = f"{Owner.SHARED}-{BudgetCategory.HOMELOAN}"
+    SHARED_STOCK = f"{Owner.SHARED}-{BudgetCategory.STOCK}"
+    SHARED_CRYPTO = f"{Owner.SHARED}-{BudgetCategory.CRYPTO}"
+    SHARED_TRAVEL = f"{Owner.SHARED}-{BudgetCategory.TRAVEL}"
+    SHARED_E0 = f"{Owner.SHARED}-{BudgetCategory.E0}"
+    SHARED_OTHERS = f"{Owner.SHARED}-{BudgetCategory.OTHERS}"
 
     @classmethod
     def all(cls):
@@ -71,22 +71,24 @@ class BudgetEnum(Enum):
 
 
 class AccountEnum(Enum):
-    TEST = (Owner.TEST, Bank.TEST, Vault.TEST, 0.0)
+    TEST = f"{Owner.TEST}-{Bank.TEST}-{Vault.TEST}"
 
-    FISHER_KBC_BASIC = (Owner.FISHER, Bank.KBC, Vault.BASIC, 1487.67)
-    FISHER_KBC_TWD = (Owner.FISHER, Bank.KBC, Vault.TWD, 401.64)
-    FISHER_REVOLUT_BASIC = (Owner.FISHER, Bank.REVOLUT, Vault.BASIC, 240.02)
-    FISHER_REVOLUT_PRO = (Owner.FISHER, Bank.REVOLUT, Vault.PRO, 0.0)
+    FISHER_KBC_BASIC = f"{Owner.FISHER}-{Bank.KBC}-{Vault.BASIC}"
+    FISHER_KBC_TWD = f"{Owner.FISHER}-{Bank.KBC}-{Vault.TWD}"
+    FISHER_REVOLUT_BASIC = f"{Owner.FISHER}-{Bank.REVOLUT}-{Vault.BASIC}"
+    FISHER_REVOLUT_PRO = f"{Owner.FISHER}-{Bank.REVOLUT}-{Vault.PRO}"
 
-    RUHAN_KBC_BASIC = (Owner.RUHAN, Bank.KBC, Vault.BASIC, 4237.32)
-    RUHAN_KBC_TWD = (Owner.RUHAN, Bank.KBC, Vault.TWD, 0.26)
-    RUHAN_REVOLUT_BASIC = (Owner.RUHAN, Bank.REVOLUT, Vault.BASIC, 27.5)
+    RUHAN_KBC_BASIC = f"{Owner.RUHAN}-{Bank.KBC}-{Vault.BASIC}"
+    RUHAN_KBC_TWD = f"{Owner.RUHAN}-{Bank.KBC}-{Vault.TWD}"
+    RUHAN_REVOLUT_BASIC = f"{Owner.RUHAN}-{Bank.REVOLUT}-{Vault.BASIC}"
 
-    SHARED_KBC_BASIC = (Owner.SHARED, Bank.KBC, Vault.BASIC, 201.9)
-    SHARED_KBC_CARD = (Owner.SHARED, Bank.KBC, Vault.CREDIT_CARD, 0.0)
-    SHARED_KBC_E0 = (Owner.SHARED, Bank.KBC, Vault.E0, 0.8)
-    SHARED_REVOLUT_TRAVEL = (Owner.SHARED, Bank.REVOLUT, Vault.TRAVEL, 500.0)
-    SHARED_CRYPTO_CARD = (Owner.SHARED, Bank.CRYPTO_COM, Vault.DEBIT_CARD, 443.48)
+    SHARED_KBC_BASIC = f"{Owner.SHARED}-{Bank.KBC}-{Vault.BASIC}"
+    SHARED_KBC_CARD = f"{Owner.SHARED}-{Bank.KBC}-{Vault.CREDIT_CARD}"
+    SHARED_KBC_E0 = f"{Owner.SHARED}-{Bank.KBC}-{Vault.E0}"
+    SHARED_REVOLUT_TRAVEL = f"{Owner.SHARED}-{Bank.REVOLUT}-{Vault.TRAVEL}"
+    SHARED_CRYPTO_CARD = f"{Owner.SHARED}-{Bank.CRYPTO_COM}-{Vault.DEBIT_CARD}"
+    SHARED_CRYPTO_BASIC = f"{Owner.SHARED}-{Bank.CRYPTO_COM}-{Vault.BASIC}"
+    SHARED_DEGIRO_BASIC = f"{Owner.SHARED}-{Bank.DEGIRO}-{Vault.BASIC}"
 
     @classmethod
     def all(cls):

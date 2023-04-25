@@ -2,6 +2,7 @@ from accountbook.account import Account
 from accountbook.gbq import Table
 from constant.table import ColRawData
 from typing import List
+import pandas as pd
 
 
 def init_account_files(transactions: Table, year: int = 2023) -> None:
@@ -34,6 +35,10 @@ def update_accounts_balance(accounts: List[Account], transactions: Table) -> Non
     )
     for account in accounts:
         account.balance = dict_balance[account.id]
+
+
+def has_tag(df: pd.DataFrame, tag: str) -> pd.Series[bool]:
+    return df.tags.apply(lambda string: tag in string.split(", "))
 
 
 def main():
