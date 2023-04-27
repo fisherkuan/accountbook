@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 from dataclasses import dataclass, field
 
 import pandas as pd
@@ -156,30 +156,49 @@ class Table:
     def query(self, query) -> pd.DataFrame:
         return self.handler.query(query)
 
-    def _generate_col_string(self) -> str:
-        col_all_except_tags = ColRawData.values()[:-1]
-        col_tags = [f"tag_{tag}" for tag in ColRawData.TAGS]
-        return ", ".join(col_all_except_tags + col_tags)
+    def load_data(
+        self,
+        value_is_negative=True,
+        conditions: List[str] = [],
+        sort: Dict[str, str] = {},
+    ) -> pd.DataFrame:
+        def generate_selected_col() -> str:
+            col_all_except_tags = ColRawData.values()[:-1]
+            col_tags = [f"tag_{tag}" for tag in ColRawData.TAGS]
+            return ", ".join(col_all_except_tags + col_tags)
 
-    def _convert_tags_column(self, df: pd.DataFrame) -> pd.DataFrame:
-        col_tags = [col for col in df.columns if col.startswith("tag_")]
-        col_out = [col for col in df.columns if not col.startswith("tag_")] + ["tags"]
-        for col in col_tags:
-            tag = col[4:]
-            df[col] = df[col].apply(lambda x: tag if x else None)
-        df["tags"] = df[col_tags].values.tolist()
-        df["tags"] = df["tags"].apply(
-            lambda list_tags: ", ".join(filter(None, list_tags))
-        )
-        return df[col_out]
+        def generate_conditions(conditions: List[str]) -> str:
+            c0 = f"{ColRawData.VALUE} IS NOT NULL"
+            conditions = " AND ".join([c0] + conditions)
+            return conditions
 
-    def load_data(self) -> pd.DataFrame:
+        def generate_sort(sort: Dict[str, str]) -> str:
+            sort = ", ".join([f"{col} {order}" for col, order in sort.items()])
+            return sort
+
+        def convert_tags_column(df: pd.DataFrame) -> pd.DataFrame:
+            col_tags = [col for col in df.columns if col.startswith("tag_")]
+            col_out = [col for col in df.columns if not col.startswith("tag_")] + [
+                "tags"
+            ]
+            for col in col_tags:
+                tag = col[4:]
+                df[col] = df[col].apply(lambda checked: tag if checked else None)
+            df["tags"] = df[col_tags].values.tolist()
+            df["tags"] = df["tags"].apply(
+                lambda list_tags: ", ".join(filter(None, list_tags))
+            )
+            return df[col_out]
+
         data: pd.DataFrame = self.query(
-            f"SELECT {self._generate_col_string()} FROM {self.table_id} "
-            f"WHERE {ColRawData.VALUE} IS NOT NULL"
+            f"SELECT {generate_selected_col()} FROM {self.table_id} "
+            f"WHERE {generate_conditions(conditions)} "
+            f"ORDER BY {generate_sort(sort)}"
         )
-        data[ColRawData.VALUE] = -data[ColRawData.VALUE].round(2)
-        data = self._convert_tags_column(data)
+        if value_is_negative:
+            data[ColRawData.VALUE] = -data[ColRawData.VALUE]
+        data[ColRawData.VALUE] = data[ColRawData.VALUE].round(2)
+        data = convert_tags_column(data)
         return data
 
 

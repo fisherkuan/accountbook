@@ -11,7 +11,7 @@ def calculate_balance(transactions: List[Tuple[str, str, float]]) -> Dict[str, f
     return balance
 
 
-def optimal_balancing(balance: Dict[str, float]) -> List[Tuple[str, str, float]]:
+def optimal_reimburse(balance: Dict[str, float]) -> List[Tuple[str, str, float]]:
     def balance_close_group(balance):
         positives = {person: money for person, money in balance.items() if money > 0}
         negatives = {person: money for person, money in balance.items() if money < 0}
@@ -48,3 +48,23 @@ def optimal_balancing(balance: Dict[str, float]) -> List[Tuple[str, str, float]]
                         {person: balance.pop(person) for person in group}
                     )
     return optimal
+
+
+def main():
+    transactions = [
+        ("A", "B", 100),  # B owes A 100
+        ("A", "C", 200),  # C owes A 200
+        ("B", "C", 100),  # C owes B 100
+        ("B", "D", 100),  # D owes B 100
+        ("C", "D", 200),  # D owes C 200
+        ("D", "E", 100),  # E owes D 100
+    ]
+
+    # Calculate net balance for each person
+    print(f"Balance: {calculate_balance(transactions)}")
+    # Find optimal way to reimburse
+    print(f"Optimal: {optimal_reimburse(calculate_balance(transactions))}")
+
+
+if __name__ == "__main__":
+    main()

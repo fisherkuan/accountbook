@@ -3,11 +3,36 @@ from accountbook.gbq import Table
 from constant.table import ColRawData
 from typing import List
 import pandas as pd
+from config import CHECKPOINTS
+
+
+def snapshot_transactions(
+    transactions: Table, year: int = None, month: int = None
+) -> None:
+    conditions = []
+    sort = {
+        ColRawData.YEAR: "asc",
+        ColRawData.MONTH: "asc",
+        ColRawData.DAY: "asc",
+        ColRawData.ACCOUNT_ID: "asc",
+        ColRawData.BUDGET_ID: "asc",
+    }
+    filename = "transactions"
+    if year:
+        conditions.append(f"{ColRawData.YEAR} = {year}")
+        filename += f"_{year}"
+    if month:
+        conditions.append(f"{ColRawData.MONTH} = {month}")
+        filename += f"_{month}"
+    df = transactions.load_data(conditions=conditions, sort=sort)
+    CHECKPOINTS.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(CHECKPOINTS / f"{filename}.parquet", index=False)
 
 
 def init_account_files(transactions: Table, year: int = 2023) -> None:
-    df = transactions.load_data()
-    df_default = df.loc[(df[ColRawData.YEAR] == year) & (df[ColRawData.MONTH] == 0)]
+    df_default = transactions.load_data(
+        conditions=[f"{ColRawData.YEAR} = {year}", f"{ColRawData.MONTH} = 0"]
+    )
 
     for _, r in df_default.iterrows():
         owner, bank, vault = r[ColRawData.ACCOUNT_ID].split("-")
@@ -27,11 +52,7 @@ def init_account_files(transactions: Table, year: int = 2023) -> None:
 def update_accounts_balance(accounts: List[Account], transactions: Table) -> None:
     df = transactions.load_data()
     dict_balance = (
-        df[[ColRawData.ACCOUNT_ID, ColRawData.VALUE]]
-        .groupby(ColRawData.ACCOUNT_ID)[ColRawData.VALUE]
-        .sum()
-        .round(2)
-        .to_dict()
+        df.groupby(ColRawData.ACCOUNT_ID)[ColRawData.VALUE].sum().round(2).to_dict()
     )
     for account in accounts:
         account.balance = dict_balance[account.id]

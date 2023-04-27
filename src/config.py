@@ -5,6 +5,7 @@ SECRETS = Path("/Users/fisherkuan/Projects/fisher/accountbook/secrets")
 SCHEMA = Path("/Users/fisherkuan/Projects/fisher/accountbook/schema")
 ACCOUNTS = Path("/Users/fisherkuan/Projects/fisher/accountbook/data/accounts")
 BUDGETS = Path("/Users/fisherkuan/Projects/fisher/accountbook/data/budgets")
+CHECKPOINTS = Path("/Users/fisherkuan/Projects/fisher/accountbook/data/checkpoints")
 HOME = Path("/Users/fisherkuan/Projects/fisher/accountbook/src")
 
 config_account = {
@@ -14,8 +15,6 @@ config_account = {
         "bank",
         "vault",
         "default_balance",
-        "balance",
-        "last_balance_update",
     ]
 }
 
