@@ -15,7 +15,11 @@ config_account = {
         "bank",
         "vault",
         "default_balance",
-    ]
+    ],
+    "snapshot_attributes": [
+        "profile",
+        "balance",
+    ],
 }
 
 config_budget = {
@@ -24,7 +28,11 @@ config_budget = {
         "owner",
         "budget_category",
         "default_budget",
-    ]
+    ],
+    "snapshot_attributes": [
+        "profile",
+        "deposit",
+    ],
 }
 
 budget_holders = {

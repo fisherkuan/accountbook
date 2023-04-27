@@ -1,38 +1,40 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, InitVar
 from datetime import datetime
-from collections import defaultdict
 import json
+from accountbook.abc import AccountBookMemberABC
 
 from config import ACCOUNTS, config_account
 from constant.members import AccountEnum
 
 
-@dataclass
-class Account:
+@dataclass(kw_only=True)
+class Account(AccountBookMemberABC):
     owner: str
     bank: str
     vault: str
-    id: str = field(init=False)
-    description: str = None
+    _config: dict = field(default_factory=lambda: config_account, repr=False)
     default_balance: float = field(default=None, repr=False)
-    init: bool = field(default=False, repr=False)
-    _balance: float = field(init=False, repr=False)
+    init: InitVar[bool] = False
 
-    def __post_init__(self) -> None:
+    def __post_init__(self, init) -> None:
         self.id: str = f"{self.owner}-{self.bank}-{self.vault}"
         self.file_path = ACCOUNTS / f"{self.id}.json"
-        if self.init and not self.file_path.exists():
-            self.initiate_file()
+        super().__post_init__(init)
 
     @property
     def balance(self):
+        assert hasattr(self, "_balance"), AttributeError(
+            "balance has not been defined yet."
+        )
         return self._balance
 
     @balance.setter
     def balance(self, new_value: float):
-        assert isinstance(new_value, (float, int)), TypeError("Balance is numeric.")
+        assert isinstance(new_value, (float, int)), TypeError(
+            "balance must be numeric."
+        )
         self._balance = round(float(new_value), 2)
         if self.file_path and self.file_path.exists():
             with open(self.file_path) as file:
@@ -46,17 +48,17 @@ class Account:
                 json.dump(data, file, indent=4)
 
     @staticmethod
-    def from_id(account_id: str, **kwargs) -> Account:
-        owner, bank, vault = account_id.split("-")
+    def from_id(id: str, **kwargs) -> Account:
+        owner, bank, vault = id.split("-")
         return Account(owner=owner, bank=bank, vault=vault, **kwargs)
 
     def initiate_file(self) -> None:
         ACCOUNTS.mkdir(parents=True, exist_ok=True)
         assert self.default_balance is not None, ValueError(
-            "Default balance must be set."
+            "Default balance must be set with attribute 'default_balance'."
         )
         profile = {
-            attr: getattr(self, attr) for attr in config_account["profile_attributes"]
+            attr: getattr(self, attr) for attr in self._config["profile_attributes"]
         }
         data = dict(balance=self.default_balance, profile=profile)
         data["latest_balance_update"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -65,39 +67,6 @@ class Account:
         with open(self.file_path, "w") as file:
             json.dump(data, file, indent=4)
             print(f"Created a new file {self.file_path}")
-
-    def update_profile(self, **kwargs) -> None:
-        with open(self.file_path) as file:
-            data = json.load(file)
-        data["profile"].update(kwargs)
-        data["latest_profile_update"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open(self.file_path, "w") as file:
-            json.dump(data, file, indent=4)
-            print("Updated profile.")
-
-    def load(self):
-        with open(self.file_path) as file:
-            return json.load(file)
-
-    def take_snapshot(self, label: str = None) -> None:
-        with open(self.file_path) as file:
-
-            def fn_defaultdict_list(d):
-                return defaultdict(list, d)
-
-            data = json.load(file, object_hook=fn_defaultdict_list)
-
-        snapshot = {
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "profile": data["profile"],
-            "balance": data["balance"],
-        }
-        if label:
-            snapshot["label"] = label
-        data["snapshots"].append(snapshot)
-
-        with open(self.file_path, "w") as file:
-            json.dump(data, file, indent=4)
 
 
 def main():

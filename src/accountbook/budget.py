@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass, field
+from datetime import datetime
+from accountbook.abc import AccountBookMemberABC
 from accountbook.helper import nested_defaultdict
 from collections import defaultdict
 import json
-from pathlib import Path
 
 from enum import Enum
 from constant.members import BudgetEnum
@@ -28,44 +29,40 @@ class Month(Enum):
 
 
 @dataclass
-class Budget:
+class Budget(AccountBookMemberABC):
     owner: str
     budget_category: str
-    default_budget: float = None
-    description: str = None
+    _config: dict = field(default_factory=lambda: config_budget, repr=False)
+    init: InitVar[bool] = False
 
-    def __post_init__(self) -> None:
+    def __post_init__(self, init) -> None:
         self.id: str = f"{self.owner}-{self.budget_category}"
         self.file_path = BUDGETS / f"{self.id}.json"
-        if not self.file_path.exists():
-            self.initiate_file()
+        super().__post_init__(init)
 
     @staticmethod
-    def _fn_nested_defaultdict_object_hook(d):
-        return defaultdict(nested_defaultdict, d)
-
-    @staticmethod
-    def from_file(file_path: Path | str) -> Budget:
-        with open(file_path) as f:
-            attributes = json.load(f)["profile"]
-        return Budget(**attributes)
+    def from_id(id: str, **kwargs) -> Budget:
+        owner, budget_category = id.split("-")
+        return Budget(owner=owner, budget_category=budget_category, **kwargs)
 
     def initiate_file(self) -> None:
-        profile_attributes = config_budget["profile_attributes"]
-        profile = {attr: getattr(self, attr) for attr in profile_attributes}
+        BUDGETS.mkdir(parents=True, exist_ok=True)
+        profile = {
+            attr: getattr(self, attr) for attr in config_budget["profile_attributes"]
+        }
+        data = dict(profile=profile)
+        data["latest_profile_update"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(self.file_path, "w") as file:
-            json.dump(dict(profile=profile), file, indent=4)
+            json.dump(data, file, indent=4)
         print(f"Created a new file {self.file_path}")
 
-    def load(self):
-        with open(self.file_path) as file:
-            return json.load(file)
-
+    # TODO: review this method
     def add(self, month: Month, budget: float, year: int | str = 2023) -> None:
+        def _fn_nested_defaultdict_object_hook(d):
+            return defaultdict(nested_defaultdict, d)
+
         with open(self.file_path) as file:
-            data = json.load(
-                file, object_hook=Budget._fn_nested_defaultdict_object_hook
-            )
+            data = json.load(file, object_hook=_fn_nested_defaultdict_object_hook)
 
         year = str(year)
         if not data["deposit"][year][month.name]:
@@ -77,6 +74,7 @@ class Budget:
             json.dump(data, file, indent=4)
             print(f"Budget {budget} added to {year}-{month.name}.")
 
+    # TODO: review this method
     def remove(self, month: Month, budget: float, year: int | str = 2023) -> None:
         with open(self.file_path) as file:
             data = json.load(
