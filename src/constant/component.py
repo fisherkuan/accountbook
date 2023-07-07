@@ -1,48 +1,49 @@
-from enum import Enum
+from enum import StrEnum, auto
 
 
-class Owner:
-    FISHER = "fisher"
-    RUHAN = "ruhan"
-    SHARED = "shared"
+class Owner(StrEnum):
+    FISHER = auto()
+    RUHAN = auto()
+    SHARED = auto()
     TEST = "test_owner"
 
 
-class Bank:
-    KBC = "kbc"
-    REVOLUT = "revolut"
+class Bank(StrEnum):
+    KBC = auto()
+    REVOLUT = auto()
     CRYPTO_COM = "crypto.com"
-    DEGIRO = "degiro"
+    DEGIRO = auto()
     TEST = "test_bank"
 
 
-class Vault:
-    BASIC = "basic"
-    PRO = "pro"
-    TWD = "twd"
-    TRAVEL = "travel"
-    E0 = "e0"
-    CREDIT_CARD = "credit_card"
-    DEBIT_CARD = "debit_card"
+class Vault(StrEnum):
+    BASIC = auto()
+    JOINT = auto()
+    PRO = auto()
+    TWD = auto()
+    TRAVEL = auto()
+    E0 = auto()
+    CREDIT_CARD = auto()
+    DEBIT_CARD = auto()
     TEST = "test_vault"
 
 
-class BudgetCategory:
-    SALARY = "salary"
-    PERSONAL = "personal"
-    SHARED = "shared"
-    HOMELOAN = "homeloan"
-    STOCK = "stock"
-    CRYPTO = "crypto"
-    PENSION = "pension"
-    TWD = "twd"
-    TRAVEL = "travel"
-    E0 = "e0"
-    OTHERS = "others"
+class BudgetCategory(StrEnum):
+    SALARY = auto()
+    PERSONAL = auto()
+    SHARED = auto()
+    HOMELOAN = auto()
+    STOCK = auto()
+    CRYPTO = auto()
+    PENSION = auto()
+    TWD = auto()
+    TRAVEL = auto()
+    E0 = auto()
+    OTHERS = auto()
     TEST = "test_budget"
 
 
-class BudgetEnum(Enum):
+class BudgetId(StrEnum):
     TEST = f"{Owner.TEST}-{BudgetCategory.TEST}"
 
     FISHER_SALARY = f"{Owner.FISHER}-{BudgetCategory.SALARY}"
@@ -65,12 +66,8 @@ class BudgetEnum(Enum):
     SHARED_E0 = f"{Owner.SHARED}-{BudgetCategory.E0}"
     SHARED_OTHERS = f"{Owner.SHARED}-{BudgetCategory.OTHERS}"
 
-    @classmethod
-    def all(cls):
-        return [attr.value for attr in list(cls)]
 
-
-class AccountEnum(Enum):
+class AccountId(StrEnum):
     TEST = f"{Owner.TEST}-{Bank.TEST}-{Vault.TEST}"
 
     FISHER_KBC_BASIC = f"{Owner.FISHER}-{Bank.KBC}-{Vault.BASIC}"
@@ -85,11 +82,8 @@ class AccountEnum(Enum):
     SHARED_KBC_BASIC = f"{Owner.SHARED}-{Bank.KBC}-{Vault.BASIC}"
     SHARED_KBC_CARD = f"{Owner.SHARED}-{Bank.KBC}-{Vault.CREDIT_CARD}"
     SHARED_KBC_E0 = f"{Owner.SHARED}-{Bank.KBC}-{Vault.E0}"
+    SHARED_REVOLUT_JOINT = f"{Owner.SHARED}-{Bank.REVOLUT}-{Vault.JOINT}"
     SHARED_REVOLUT_TRAVEL = f"{Owner.SHARED}-{Bank.REVOLUT}-{Vault.TRAVEL}"
     SHARED_CRYPTO_CARD = f"{Owner.SHARED}-{Bank.CRYPTO_COM}-{Vault.DEBIT_CARD}"
     SHARED_CRYPTO_BASIC = f"{Owner.SHARED}-{Bank.CRYPTO_COM}-{Vault.BASIC}"
     SHARED_DEGIRO_BASIC = f"{Owner.SHARED}-{Bank.DEGIRO}-{Vault.BASIC}"
-
-    @classmethod
-    def all(cls):
-        return [attr.value for attr in list(cls)]

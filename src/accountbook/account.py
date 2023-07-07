@@ -1,86 +1,61 @@
-from __future__ import annotations
+from dataclasses import dataclass, field
+import config
+from constant.component import AccountId, Owner, Bank, Vault
 
-from dataclasses import dataclass, field, InitVar
-from datetime import datetime
-import json
-from accountbook.abc import AccountBookMemberABC
-
-from config import ACCOUNTS, config_account
-from constant.members import AccountEnum
+import pandas as pd
+import numpy as np
 
 
-@dataclass(kw_only=True)
-class Account(AccountBookMemberABC):
-    owner: str
-    bank: str
-    vault: str
-    _config: dict = field(default_factory=lambda: config_account, repr=False)
-    default_balance: float = field(default=None, repr=False)
-    init: InitVar[bool] = False
+@dataclass
+class Account:
+    id: str | AccountId = field(repr=False, default=None)
+    owner: Owner = field(kw_only=True, default=None)
+    bank: Bank = field(kw_only=True, default=None)
+    vault: Vault = field(kw_only=True, default=None)
 
-    def __post_init__(self, init) -> None:
-        self.id: str = f"{self.owner}-{self.bank}-{self.vault}"
-        self.file_path = ACCOUNTS / f"{self.id}.json"
-        super().__post_init__(init)
+    def __post_init__(self) -> None:
+        if self.id is not None:
+            self.owner, self.bank, self.vault = self.id.split("-")
+
+        self.id = f"{self.owner}-{self.bank}-{self.vault}"
+        self.metadata = self.load_metadata()
 
     @property
     def balance(self):
-        assert hasattr(self, "_balance"), AttributeError(
-            "balance has not been defined yet."
-        )
+        assert hasattr(self, "_balance"), AttributeError("Balance has not been defined yet.")
         return self._balance
 
     @balance.setter
     def balance(self, new_value: float):
         assert isinstance(new_value, (float, int)), TypeError(
-            "balance must be numeric."
+            f"Balance must be numeric. Got {type(new_value)} instead."
         )
         self._balance = round(float(new_value), 2)
-        if self.file_path and self.file_path.exists():
-            with open(self.file_path) as file:
-                data = json.load(file)
-            with open(self.file_path, "w") as file:
-                data["balance"] = self._balance
-                data["latest_balance_update"] = datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
-                print(f"Balance set to {self._balance:.2f}")
-                json.dump(data, file, indent=4)
 
-    @staticmethod
-    def from_id(id: str, **kwargs) -> Account:
-        owner, bank, vault = id.split("-")
-        return Account(owner=owner, bank=bank, vault=vault, **kwargs)
+    def load_metadata(self) -> dict:
+        df = pd.read_csv(config.DATA / "account-metadata.csv").replace(np.nan, None)
+        try:
+            metadata = df[df["account_id"] == self.id].to_dict(orient="records")[0]
+        except IndexError:
+            raise ValueError(f"Account {self.id} does not exist.")
 
-    def initiate_file(self) -> None:
-        ACCOUNTS.mkdir(parents=True, exist_ok=True)
-        assert self.default_balance is not None, ValueError(
-            "Default balance must be set with attribute 'default_balance'."
-        )
-        profile = {
-            attr: getattr(self, attr) for attr in self._config["profile_attributes"]
-        }
-        data = dict(balance=self.default_balance, profile=profile)
-        data["latest_balance_update"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        data["latest_profile_update"] = data["latest_balance_update"]
-
-        with open(self.file_path, "w") as file:
-            json.dump(data, file, indent=4)
-            print(f"Created a new file {self.file_path}")
+        for col in config.METADATA_LIST_COLUMNS:
+            if metadata[col] is None:
+                metadata[col] = []
+            else:
+                metadata[col] = metadata[col].split(";")
+        return metadata
 
 
 def main():
-    a = Account.from_id(AccountEnum.TEST.value)
-    a.file_path.unlink(missing_ok=True)
-    a.default_balance = 100
-    a.description = "Test account"
-    a.initiate_file()
+    a = Account(AccountId.TEST)
     print(f"{a=}")
     a.balance = 150
-    a.take_snapshot()
-    a.update_profile(description="Test account for testing")
-    a.balance = 200
-    a.take_snapshot(label="Cheese!")
+    print(f"{a.balance=}")
+    print(f"{a.metadata=}")
+
+    b = Account(owner=Owner.FISHER, bank=Bank.KBC, vault=Vault.CREDIT_CARD)
+    print(f"{b=}")
 
 
 if __name__ == "__main__":

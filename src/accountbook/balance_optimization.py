@@ -1,9 +1,8 @@
 from itertools import combinations
-from typing import Dict, List, Tuple
 from collections import defaultdict
 
 
-def calculate_balance(transactions: List[Tuple[str, str, float]]) -> Dict[str, float]:
+def calculate_balance(transactions: list[tuple[str, str, float]]) -> dict[str, float]:
     balance = defaultdict(float)
     for person1, person2, money in transactions:
         balance[person1] += money
@@ -11,7 +10,7 @@ def calculate_balance(transactions: List[Tuple[str, str, float]]) -> Dict[str, f
     return balance
 
 
-def optimal_reimburse(balance: Dict[str, float]) -> List[Tuple[str, str, float]]:
+def optimal_reimburse(balance: dict[str, float]) -> list[tuple[str, str, float]]:
     def balance_close_group(balance):
         positives = {person: money for person, money in balance.items() if money > 0}
         negatives = {person: money for person, money in balance.items() if money < 0}
@@ -30,12 +29,8 @@ def optimal_reimburse(balance: Dict[str, float]) -> List[Tuple[str, str, float]]
                 yield (negative[0], positive[0], positive[1])
 
     balance = {person: money for person, money in balance.items() if money != 0}
-    assert (
-        len(balance) > 1
-    ), f"Not enough non-zero balances (size={len(balance)}) to optimize."
-    assert (
-        sum(balance.values()) == 0
-    ), "Impossible to balance because the sum of balances is non-zero."
+    assert len(balance) > 1, f"Not enough non-zero balances (size={len(balance)}) to optimize."
+    assert sum(balance.values()) == 0, "Impossible to balance because the sum of balances is non-zero."
 
     optimal = []
     for size in range(2, len(balance) + 1):
@@ -44,9 +39,7 @@ def optimal_reimburse(balance: Dict[str, float]) -> List[Tuple[str, str, float]]
                 if all(person in balance.keys() for person in group) and (
                     sum(balance[person] for person in group) == 0
                 ):
-                    optimal += balance_close_group(
-                        {person: balance.pop(person) for person in group}
-                    )
+                    optimal += balance_close_group({person: balance.pop(person) for person in group})
     return optimal
 
 

@@ -1,32 +1,47 @@
-from typing import Callable
+from enum import StrEnum, auto
+from dataclasses import dataclass, field
+from typing import Literal
 
 
-class BaseConstant:
-    def keys():
-        return [
-            attr
-            for attr in vars(ColRawData)
-            if not attr.startswith("__")
-            and not isinstance(getattr(ColRawData, attr), Callable)
-        ]
-
-    def values():
-        return [getattr(ColRawData, attr) for attr in ColRawData.keys()]
-
-    def items():
-        return dict(zip(ColRawData.keys(), ColRawData.values()))
-
-
-class ColRawData(BaseConstant):
-    YEAR = "year"
-    MONTH = "month"
-    DAY = "day"
+class TransactionField(StrEnum):
+    YEAR = auto()
+    MONTH = auto()
+    DAY = auto()
     VALUE = "eur"
-    ACCOUNT_ID = "account"
-    BUDGET_ID = "budget_category"
-    DESCRIPTION = "description"
-    TAGS = [
-        "salary",
-        "deposit",
-        "direct_debit",
-    ]
+    ACCOUNT_ID = auto()
+    BUDGET_ID = auto()
+    DESCRIPTION = auto()
+    TAG_SALARY = auto()
+    TAG_DEPOSIT = auto()
+    TAG_DIRECT_DEBIT = auto()
+
+    @property
+    def tags(self):
+        return [name[4:] for name in TransactionField.__members__ if name.startswith("TAG_")]
+
+
+class Order(StrEnum):
+    ASC = auto()
+    DESC = auto()
+
+
+@dataclass
+class SchemaTransactionField:
+    name: TransactionField
+    type: Literal["string", "int64", "float64", "boolean"]
+    mode: Literal["nullable", "required", "repeated"] = "nullable"
+    transform: str | None = field(default=None, repr=False, kw_only=True)
+
+
+transaction_schema = [
+    SchemaTransactionField(TransactionField.YEAR, "int64", "required"),
+    SchemaTransactionField(TransactionField.MONTH, "int64", "required"),
+    SchemaTransactionField(TransactionField.DAY, "int64", "required"),
+    SchemaTransactionField(TransactionField.VALUE, "int64", "required", transform="CAST((-eur * 100) AS INT64)"),
+    SchemaTransactionField(TransactionField.ACCOUNT_ID, "string", "required"),
+    SchemaTransactionField(TransactionField.BUDGET_ID, "string", "required"),
+    SchemaTransactionField(TransactionField.DESCRIPTION, "string", "nullable"),
+    SchemaTransactionField(TransactionField.TAG_SALARY, "boolean", "nullable"),
+    SchemaTransactionField(TransactionField.TAG_DEPOSIT, "boolean", "nullable"),
+    SchemaTransactionField(TransactionField.TAG_DIRECT_DEBIT, "boolean", "nullable"),
+]

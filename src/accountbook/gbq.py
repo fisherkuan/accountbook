@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import Dict, List
 from dataclasses import dataclass, field
 
 import pandas as pd
@@ -10,13 +9,11 @@ from google.cloud.exceptions import NotFound
 
 from accountbook.credentials import get_creds
 from config import SCHEMA, SECRETS
-from constant.table import ColRawData
+from constant.table import TransactionField, SchemaTransactionField, Order
 
 
 class GoogleBigQueryHandler:
-    def __init__(
-        self, project: str = "kuan-wu-accounting", auth_from_service_account_file=False
-    ) -> None:
+    def __init__(self, project: str = "kuan-wu-accounting", auth_from_service_account_file=False) -> None:
         self.cred = get_creds(auth_from_service_account_file)
         self.client = bigquery.Client(project=project, credentials=self.cred)
         pdgbq.context.credentials = self.cred
@@ -46,12 +43,12 @@ class GoogleBigQueryHandler:
         dataset = self.client.create_dataset(dataset, timeout=30)
         print(f"Created dataset {self.client.project}.{dataset.dataset_id}")
 
-    def create_table(
+    def create_external_table(
         self,
         name: str,
         dataset_id: str,
-        schema: List[bigquery.SchemaField],
-        external_config: bigquery.ExternalConfig = None,
+        schema: list[bigquery.SchemaField],
+        external_config: bigquery.ExternalConfig | None = None,
     ) -> None:
         table_id = f"{dataset_id}.{name}"
         table = bigquery.Table(table_id, schema=schema)
@@ -59,11 +56,11 @@ class GoogleBigQueryHandler:
         table = self.client.create_table(table)
         print(f"Created table {table.project}.{table.dataset_id}.{table.table_id}")
 
-    def update_table_metadata(
+    def update_external_table_metadata(
         self,
         table_id: str,
-        schema: List[bigquery.SchemaField] = None,
-        external_config: bigquery.ExternalConfig = None,
+        schema: list[bigquery.SchemaField] | None = None,
+        external_config: bigquery.ExternalConfig | None = None,
     ) -> None:
         table = bigquery.Table(table_id, schema=schema)
         table.external_data_configuration = external_config
@@ -74,9 +71,7 @@ class GoogleBigQueryHandler:
         self.client.delete_table(table_id, not_found_ok)
         print(f"Deleted table {table_id}")
 
-    def generate_external_config(
-        self, sheet_url: str, range: str, **options
-    ) -> bigquery.ExternalConfig:
+    def generate_external_config(self, sheet_url: str, range: str, **options) -> bigquery.ExternalConfig:
         """External configuration defines advanced options when creating an external table like GoogleSheets.
 
         Args:
@@ -95,9 +90,7 @@ class GoogleBigQueryHandler:
             setattr(external_config.options, option, value)
         return external_config
 
-    def get_sheet_url_from_json(
-        self, sheet_name: str, json_path: Path = SECRETS / "sheet_urls.json"
-    ) -> str:
+    def get_sheet_url_from_json(self, sheet_name: str, json_path: Path = SECRETS / "sheet_urls.json") -> str:
         with open(json_path) as f:
             sheet_urls = json.load(f)
             sheet_url = sheet_urls.get(sheet_name)
@@ -105,9 +98,7 @@ class GoogleBigQueryHandler:
                 raise KeyError(f"URL of {sheet_name=} is not found.")
             return sheet_url
 
-    def get_schema_from_json(
-        self, table_name: str, json_path: Path
-    ) -> List[bigquery.SchemaField]:
+    def get_schema_from_json(self, table_name: str, json_path: Path) -> list[bigquery.SchemaField]:
         with open(json_path) as f:
             schema = json.load(f)
             schema = [bigquery.SchemaField(**field) for field in schema[table_name]]
@@ -127,14 +118,12 @@ class GoogleBigQueryHandler:
             for table_name, schema in schemas.items():
                 schema = [bigquery.SchemaField(**field) for field in schema]
                 sheet_url = self.get_sheet_url_from_json(sheet_name=sheet_name)
-                external_config = self.generate_external_config(
-                    sheet_url, table_name, **options
-                )
+                external_config = self.generate_external_config(sheet_url, table_name, **options)
                 table_id = f"{dataset_id}.{table_name}"
                 if self.table_exists(table_id):
-                    self.update_table_metadata(table_id, schema, external_config)
+                    self.update_external_table_metadata(table_id, schema, external_config)
                 else:
-                    self.create_table(table_name, dataset_id, schema, external_config)
+                    self.create_external_table(table_name, dataset_id, schema, external_config)
         print(f"All tables in {dataset_name=} are updated.")
 
 
@@ -158,48 +147,46 @@ class Table:
 
     def load_data(
         self,
-        value_is_negative=True,
-        conditions: List[str] = [],
-        sort: Dict[str, str] = {},
+        conditions: list[str] = [],
+        sort: dict[TransactionField, Order] = {},
+        schema: list[SchemaTransactionField] = [],
     ) -> pd.DataFrame:
-        def generate_selected_col() -> str:
-            col_all_except_tags = ColRawData.values()[:-1]
-            col_tags = [f"tag_{tag}" for tag in ColRawData.TAGS]
-            return ", ".join(col_all_except_tags + col_tags)
+        def generate_selected_col(schema: list[SchemaTransactionField]) -> str:
+            if not schema:
+                return "*"
+            fields = []
+            for s in schema:
+                if s.transform:
+                    fields.append(f"{s.transform} AS {s.name}")
+                else:
+                    fields.append(f"CAST({s.name} AS {s.type}) AS {s.name}")
+            return ", ".join(fields)
 
-        def generate_conditions(conditions: List[str]) -> str:
-            c0 = f"{ColRawData.VALUE} IS NOT NULL"
-            conditions = " AND ".join([c0] + conditions)
-            return conditions
+        def generate_conditions(conditions: list[str], schema: list[SchemaTransactionField]) -> str:
+            required = [f"{s.name} IS NOT NULL" for s in schema if s.mode == "required"]
+            return " AND ".join(required + conditions)
 
-        def generate_sort(sort: Dict[str, str]) -> str:
-            sort = ", ".join([f"{col} {order}" for col, order in sort.items()])
-            return sort
+        def generate_sort(sort: dict[TransactionField, Order]) -> str:
+            return ", ".join([f"{field} {order}" for field, order in sort.items()])
 
         def convert_tags_column(df: pd.DataFrame) -> pd.DataFrame:
             col_tags = [col for col in df.columns if col.startswith("tag_")]
-            col_out = [col for col in df.columns if not col.startswith("tag_")] + [
-                "tags"
-            ]
+            col_out = [col for col in df.columns if not col.startswith("tag_")] + ["tags"]
             for col in col_tags:
                 tag = col[4:]
                 df[col] = df[col].apply(lambda checked: tag if checked else None)
             df["tags"] = df[col_tags].values.tolist()
-            df["tags"] = df["tags"].apply(
-                lambda list_tags: ", ".join(filter(None, list_tags))
-            )
+            df["tags"] = df["tags"].apply(lambda list_tags: ", ".join(filter(None, list_tags)))
             return df[col_out]
 
-        data: pd.DataFrame = self.query(
-            f"SELECT {generate_selected_col()} FROM {self.table_id} "
-            f"WHERE {generate_conditions(conditions)} "
-            f"ORDER BY {generate_sort(sort)}"
-        )
-        if value_is_negative:
-            data[ColRawData.VALUE] = -data[ColRawData.VALUE]
-        data[ColRawData.VALUE] = data[ColRawData.VALUE].round(2)
-        data = convert_tags_column(data)
-        return data
+        query_string = f"SELECT {generate_selected_col(schema)} FROM {self.table_id}\n"
+        if generate_conditions(conditions, schema):
+            query_string += f"WHERE {generate_conditions(conditions, schema)}\n"
+        if sort:
+            query_string += f"ORDER BY {generate_sort(sort)}"
+
+        print(query_string)
+        return convert_tags_column(self.query(query_string))
 
 
 def main():
