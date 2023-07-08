@@ -3,7 +3,7 @@ from collections import defaultdict
 
 
 def calculate_balance(transactions: list[tuple[str, str, float]]) -> dict[str, float]:
-    balance = defaultdict(float)
+    balance = defaultdict(int)
     for person1, person2, money in transactions:
         balance[person1] += money
         balance[person2] -= money

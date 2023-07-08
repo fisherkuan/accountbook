@@ -150,6 +150,7 @@ class Table:
         conditions: list[str] = [],
         sort: dict[TransactionField, Order] = {},
         schema: list[SchemaTransactionField] = [],
+        print_query: bool = False,
     ) -> pd.DataFrame:
         def generate_selected_col(schema: list[SchemaTransactionField]) -> str:
             if not schema:
@@ -173,10 +174,10 @@ class Table:
             col_tags = [col for col in df.columns if col.startswith("tag_")]
             col_out = [col for col in df.columns if not col.startswith("tag_")] + ["tags"]
             for col in col_tags:
-                tag = col[4:]
-                df[col] = df[col].apply(lambda checked: tag if checked else None)
+                tag_name = col[4:]
+                df[col] = df[col].apply(lambda is_true: tag_name if is_true else None)
             df["tags"] = df[col_tags].values.tolist()
-            df["tags"] = df["tags"].apply(lambda list_tags: ", ".join(filter(None, list_tags)))
+            df["tags"] = df["tags"].apply(lambda x: list(filter(None, x)))
             return df[col_out]
 
         query_string = f"SELECT {generate_selected_col(schema)} FROM {self.table_id}\n"
@@ -184,8 +185,9 @@ class Table:
             query_string += f"WHERE {generate_conditions(conditions, schema)}\n"
         if sort:
             query_string += f"ORDER BY {generate_sort(sort)}"
+        if print_query:
+            print(query_string)
 
-        print(query_string)
         return convert_tags_column(self.query(query_string))
 
 
