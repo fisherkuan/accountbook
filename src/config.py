@@ -23,3 +23,6 @@ TRANSACTIONS_SCHEMA = [
 ]
 
 TAGS = ["salary", "deposit", "direct_debit"]
+
+# parameters
+update_gbq = False

@@ -1,5 +1,9 @@
 from itertools import combinations
 from collections import defaultdict
+import pandas as pd
+import config
+
+from accountbook.helper import has_tag, budget_master_account, load_metadata
 
 
 def calculate_balance(transactions: list[tuple[str, str, float]]) -> dict[str, float]:
@@ -43,21 +47,12 @@ def optimal_reimburse(balance: dict[str, float]) -> list[tuple[str, str, float]]
     return optimal
 
 
-def main():
-    transactions = [
-        ("A", "B", 100),  # B owes A 100
-        ("A", "C", 200),  # C owes A 200
-        ("B", "C", 100),  # C owes B 100
-        ("B", "D", 100),  # D owes B 100
-        ("C", "D", 200),  # D owes C 200
-        ("D", "E", 100),  # E owes D 100
-    ]
-
-    # Calculate net balance for each person
-    print(f"Balance: {calculate_balance(transactions)}")
-    # Find optimal way to reimburse
-    print(f"Optimal: {optimal_reimburse(calculate_balance(transactions))}")
-
-
-if __name__ == "__main__":
-    main()
+def main(transactions: pd.DataFrame) -> list[tuple[str, str, int]]:
+    df = transactions.copy()
+    metadata = load_metadata(config.DATA / "metadata.csv")
+    df = df.loc[(df.apply(lambda x: x["budget_id"] not in x["associate_budgets"], axis=1)) & ~has_tag(df, "deposit")]
+    df["master_account_of_budget"] = df["budget_id"].map(budget_master_account(metadata))
+    balance = df.groupby(["master_account_of_budget", "master_account"])["eur"].sum()
+    balance = balance.where(balance != 0).dropna()
+    trans = [(index[0], index[1], value) for index, value in zip(balance.index, balance.values)]
+    return optimal_reimburse(calculate_balance(trans))

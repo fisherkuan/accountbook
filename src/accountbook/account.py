@@ -33,7 +33,7 @@ class Account:
         self._balance = round(float(new_value), 2)
 
     def load_metadata(self) -> dict:
-        df = pd.read_csv(config.DATA / "account-metadata.csv").replace(np.nan, None)
+        df = pd.read_csv(config.DATA / "metadata.csv").replace(np.nan, None)
         try:
             metadata = df[df["account_id"] == self.id].to_dict(orient="records")[0]
         except IndexError:
