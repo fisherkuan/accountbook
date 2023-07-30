@@ -23,8 +23,7 @@ def tags_summary(df: pd.DataFrame, tags: list[str], save: bool = True) -> list[t
         )
         if save:
             df_tag.to_csv(output_dir / f"{tag}.csv", index=False)
-        # TODO: investigate why this is not working
-        # yield tag, df_tag
+        yield tag, df_tag
 
 
 def balance_sheet(df: pd.DataFrame, save: bool = True) -> pd.DataFrame:
@@ -57,7 +56,7 @@ def main():
     print("Total transactions after merging metadata:", len(df))
 
     print("Saving tags summary...")
-    tags_summary(df, [tag for tag in config.TAGS if tag != "deposit"])
+    list(tags_summary(df, [tag for tag in config.TAGS if tag != "deposit"]))
 
     print("Saving balance sheet...")
     balance_sheet(df)

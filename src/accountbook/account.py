@@ -45,18 +45,3 @@ class Account:
             else:
                 metadata[col] = metadata[col].split(";")
         return metadata
-
-
-def main():
-    a = Account(AccountId.TEST)
-    print(f"{a=}")
-    a.balance = 150
-    print(f"{a.balance=}")
-    print(f"{a.metadata=}")
-
-    b = Account(owner=Owner.FISHER, bank=Bank.KBC, vault=Vault.CREDIT_CARD)
-    print(f"{b=}")
-
-
-if __name__ == "__main__":
-    main()
